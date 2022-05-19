@@ -1,0 +1,32 @@
+# title: Make the variance partioning plot
+# author: Nadia Harerimana
+
+library(variancePartition)
+library(ggplot2)
+
+### wrap up a function ###
+varPar_ggplot=function(vp){
+  vp2=(vp*100)
+  names=colnames(vp2)
+  t=apply(vp2, 2, FUN=median)
+  t=round(t,2)
+  t[t == 0.00] <- "<0.01"
+  textMatrix = paste(names, "\n(", t, "%)\n", sep = "");
+   melted=reshape::melt(vp2)
+  ggplot(melted, aes(x=variable, y=value, color=variable)) +
+    geom_violin(aes(x = variable, y = value), scale = "width") +
+    geom_boxplot(aes(x = variable, y = value), width = .1,outlier.size = 0.7)+
+    theme_minimal()+
+    theme(panel.border = element_blank(),
+          axis.line.x = element_line(size = 0.3, linetype = "solid", colour = "black"),
+          axis.line.y = element_line(size = 0.3, linetype = "solid", colour = "black"),
+          axis.text.x = element_text(size=8, angle=90,colour="black",hjust=1),
+          axis.text.y = element_text(size=8,colour="black"))+
+    scale_x_discrete(labels=textMatrix)
+}
+
+form = ~A+B+C+D 
+varPart <- variancePartition::fitExtractVarPartModel(df, form, metadata)
+vp <- variancePartition::sortCols( varPart)
+varPar_ggplot(vp)
+dev.off()
